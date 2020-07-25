@@ -34,6 +34,16 @@ let user = {
             }));
         }));
     },
+    isUserExist: (_id) => {
+        return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
+            User_1.User.findById(_id, { userType: 1, mobile: 1 }).lean().then(doc => {
+                return resolve(doc);
+            })
+                .catch(err => {
+                return resolve(null);
+            });
+        }));
+    },
     loginWithPassword: (data) => (new Promise((resolve) => {
         const { mobile, password } = data;
         const error = "wrong email or password";

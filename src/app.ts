@@ -71,7 +71,7 @@ app.use(session({
     saveUninitialized: true,
     secret: SESSION_SECRET
 }));
+app.use('/', checkTokenAuth)
 authRoutes(app)
-// app.use('/', checkTokenAuth)
 
 export default app;

@@ -13,7 +13,7 @@ var Usertype;
 })(Usertype || (Usertype = {}));
 const userSchema = new mongoose_1.default.Schema({
     name: String,
-    mobile: { type: String, unique: true },
+    mobile: { type: String, unique: true, required: true },
     userType: {
         type: String,
         default: 'Customer',

@@ -14,14 +14,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const user_1 = __importDefault(require("../controllers/user"));
 const order_1 = __importDefault(require("../controllers/order"));
 const item_1 = __importDefault(require("../controllers/item"));
+const settings_1 = require("../../config/settings");
 exports.default = (app) => {
-    app.post("/loginWithPassword", (req, res) => __awaiter(this, void 0, void 0, function* () {
+    app.post("/login", (req, res) => __awaiter(this, void 0, void 0, function* () {
         let { body } = req;
         let response = yield user_1.default.loginWithPassword(body);
         res.json(response);
     }));
     app
-        .route("/user")
+        .route("/register")
         .post((req, res) => __awaiter(this, void 0, void 0, function* () {
         let { body } = req;
         let response = yield user_1.default.add(body);
@@ -30,13 +31,29 @@ exports.default = (app) => {
     app
         .route("/order")
         .get((req, res) => __awaiter(this, void 0, void 0, function* () {
-        let { query } = req;
+        //@ts-ignore
+        let { query, user } = req;
+        if (!user || user.userType != 'Admin')
+            return res.status(401).json(Object.assign({}, settings_1.errorObj, { message: 'Unauthorised' }));
         let response = yield order_1.default.list(query);
         res.json(response);
     }))
         .post((req, res) => __awaiter(this, void 0, void 0, function* () {
-        let { body } = req;
+        //@ts-ignore
+        let { body, user } = req;
+        if (!user || user.userType != 'Customer')
+            return res.status(401).json(Object.assign({}, settings_1.errorObj, { message: 'Unauthorised' }));
         let response = yield order_1.default.add(body);
+        res.json(response);
+    }));
+    app
+        .route("/order/:_id")
+        .put((req, res) => __awaiter(this, void 0, void 0, function* () {
+        //@ts-ignore
+        let { body, user, params } = req;
+        if (!user || user.userType != 'Delivery Person')
+            return res.status(401).json(Object.assign({}, settings_1.errorObj, { message: 'Unauthorised' }));
+        let response = yield order_1.default.updateById(params._id, body);
         res.json(response);
     }));
     app

@@ -35,6 +35,16 @@ let order = {
             }));
         }));
     },
+    updateById: (_id, data) => {
+        return new Promise((resolve) => {
+            Order_1.Order.findByIdAndUpdate(_id, Object.assign({}, data))
+                .exec((err, result) => {
+                if (err)
+                    return resolve(Object.assign({}, settings_1.errorObj, { message: 'Error while updating' }));
+                return resolve(Object.assign({}, settings_1.successObj, { message: 'oreder updated' }));
+            });
+        });
+    },
     list: (data) => {
         return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
             let matchObj = Object.assign({}, data);

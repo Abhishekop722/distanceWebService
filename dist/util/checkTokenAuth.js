@@ -1,10 +1,15 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const settings_1 = require("../config/settings");
+const lodash_1 = __importDefault(require("lodash"));
 let jwt = require('jsonwebtoken');
 const APP_SECRET = process.env.APP_SECRET;
-const excludeAPis = ['/loginWithPassword'];
+const excludeAPis = ['/login', '/register'];
 exports.default = (req, res, next) => {
+    console.log('hererere');
     let errorResp = Object.assign({}, settings_1.errorObj, { message: 'Token is not valid' });
     if (excludeAPis.some((path) => {
         let temp = RegExp(path);
@@ -22,10 +27,16 @@ exports.default = (req, res, next) => {
                 return res.status(401).json(errorResp);
             }
             req.user = user;
-            const userCtrl = require('../../controllers/user');
-            userCtrl.default.isuserExist(user._id)
+            const userCtrl = require('../app/controllers/user');
+            userCtrl.default.isUserExist(user._id)
                 .then((doc) => {
                 if (doc) {
+                    console.log(user, doc);
+                    lodash_1.default.forEach(doc, (val, key) => {
+                        if (user[key] != val) {
+                            return res.status(401).json(errorResp);
+                        }
+                    });
                     next();
                 }
                 else {

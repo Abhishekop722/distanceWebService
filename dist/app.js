@@ -11,6 +11,7 @@ const cors_1 = __importDefault(require("cors"));
 const morgan_1 = __importDefault(require("morgan"));
 const helmet_1 = __importDefault(require("helmet"));
 const mongoose_1 = __importDefault(require("mongoose"));
+const checkTokenAuth_1 = __importDefault(require("./util/checkTokenAuth"));
 // Controllers (route handlers)
 // import {config} from './config/settings'
 const routes_1 = __importDefault(require("./app/api/routes"));
@@ -57,7 +58,7 @@ app.use(express_session_1.default({
     saveUninitialized: true,
     secret: secrets_1.SESSION_SECRET
 }));
+app.use('/', checkTokenAuth_1.default);
 routes_1.default(app);
-// app.use('/', checkTokenAuth)
 exports.default = app;
 //# sourceMappingURL=app.js.map

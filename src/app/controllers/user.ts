@@ -28,6 +28,16 @@ let user = {
 
         });
     },
+    isUserExist: (_id: string) => {
+        return new Promise(async (resolve) => {
+            User.findById(_id, { userType: 1, mobile: 1 }).lean().then(doc => {
+                return resolve(doc)
+            })
+                .catch(err => {
+                    return resolve(null)
+                })
+        });
+    },
     loginWithPassword: (data: any) => (new Promise((resolve) => {
         const { mobile, password } = data;
         const error = "wrong email or password";

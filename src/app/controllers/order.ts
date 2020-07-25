@@ -27,6 +27,17 @@ let order = {
 
         });
     },
+    updateById: (_id: string, data: any) => {
+        return new Promise((resolve) => {
+            Order.findByIdAndUpdate(_id, { ...data })
+                .exec((err: ErrorObj, result: any) => {
+                    if (err) return resolve({ ...errorObj, message: 'Error while updating' });
+                    return resolve({...successObj, message: 'oreder updated'})
+                });
+
+        });
+
+    },
     list: (data: any) => {
         return new Promise(async (resolve) => {
             let matchObj = { ...data };

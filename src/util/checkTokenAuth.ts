@@ -1,13 +1,14 @@
 import { errorObj } from "../config/settings";
-
+import _ from 'lodash'
 let jwt = require('jsonwebtoken');
 
 const APP_SECRET = process.env.APP_SECRET;
 
-const excludeAPis = ['/loginWithPassword']
+const excludeAPis = ['/login', '/register']
 
 export default (req: any, res: any, next: any) => {
 
+    console.log('hererere')
     let errorResp = {
         ...errorObj,
         message: 'Token is not valid'
@@ -24,16 +25,21 @@ export default (req: any, res: any, next: any) => {
             // Remove Bearer from string
             token = token.slice(7, token.length);
         }
-
         jwt.verify(token, APP_SECRET, (err: any, user: any) => {
             if (err) {
                 return res.status(401).json(errorResp);
             }
             req.user = user;
-            const userCtrl = require('../../controllers/user');
-            userCtrl.default.isuserExist(user._id)
+            const userCtrl = require('../app/controllers/user');
+            userCtrl.default.isUserExist(user._id)
                 .then((doc: any) => {
                     if (doc) {
+                        console.log(user, doc)
+                        _.forEach(doc, (val, key) => {
+                            if (user[key] != val) {
+                                return res.status(401).json(errorResp)
+                            }
+                        })
                         next()
                     } else {
                         res.status(401).json(errorResp)
