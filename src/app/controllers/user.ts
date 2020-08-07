@@ -1,85 +1,58 @@
-import async from "async";
-import jwt from "jsonwebtoken";
 import { User, UserDocument } from "../models/User";
-import { errorObj, successObj, ErrorObj, SuccessObj } from "../../config/settings";
+import { errorObj, successObj, secret, BodyData, ApiResp } from "../../config/settings";
 import _ from "lodash";
 import moment from "moment";
-import bcrypt from "bcrypt-nodejs";
-import { APP_SECRET } from "../../util/secrets";
 
-
-
-let user = {
-    add: (data: any) => {
+let userCtrl = {
+    add: (data: BodyData) => {
         return new Promise(async (resolve) => {
-            const userObj: any = new User();
-            _.forEach(data, (val, key) => {
-                userObj[key] = val
-            })
-            userObj.save(async (err: any, doc: object) => {
-                if (err && !doc) {
+            const entity: UserDocument = new User();
+            _.each(data, (value: any, key: keyof UserDocument) => {
+                (entity[key] as UserDocument) = value;
+            });
+            entity.save(async (err: any, doc: UserDocument) => {
+                if (err || !doc) {
                     if (err.code === 11000)
-                        return resolve({ ...errorObj, message: "Phone no. already exist" });
-                    console.log(err);
+                        return resolve({ ...errorObj, message: "User Id already exist", data: doc });
+                    console.error(err)
                     return resolve({ ...errorObj, message: "Error Saving User Details" });
                 }
-                return resolve({ ...successObj, message: "User added successfully", data: doc });
+                return resolve({ ...successObj, message: "User data added successfully", data: doc });
             });
 
         });
     },
-    isUserExist: (_id: string) => {
+    get: (id: any, data: any) => {
         return new Promise(async (resolve) => {
-            User.findById(_id, { userType: 1, mobile: 1 }).lean().then(doc => {
-                return resolve(doc)
-            })
-                .catch(err => {
-                    return resolve(null)
-                })
-        });
-    },
-    loginWithPassword: (data: any) => (new Promise((resolve) => {
-        const { mobile, password } = data;
-        const error = "wrong email or password";
-        let query = User.findOne({ mobile })
-        query.exec(function (err, user: any) {
-
-            if (!user) return resolve({ ...errorObj, message: error });
-
-
-            user.comparePassword(password).then(({ err, isMatch }: any) => {
-
-                if (!isMatch) {
-                    // return false;
-                    return resolve({ ...errorObj, message: "Invalid password" });
-                }
-
-                const JWTToken = jwt.sign({
-                    _id: user._id,
-                    userType: user.userType,
-                    name: user.name,
-                    mobile: user.mobile
-
+            if (data.startDate && data.endDate) {
+                data.date = { $gte: moment(data.startDate).toDate(), $lt: moment(data.endDate).toDate() }
+                delete data.startDate
+                delete data.endDate
+            }
+            User.aggregate([
+                {
+                    $match: {
+                        userId: parseInt(id),
+                        ...data
+                    }
                 },
-                    APP_SECRET,
-                    {
-                        expiresIn: "365d",
-                    });
-
-                return resolve({
-                    ...successObj,
-                    token: JWTToken,
-                    user: {
-                        _id: user._id,
-                        userType: user.userType,
-                        name: user.name,
-                        mobile: user.mobile
-                    },
-                });
-
-            });
-
+                {
+                    "$group": {
+                        "_id": '$userId',
+                        sumDistance: { $sum: "$distance" }
+                    }
+                },
+                {
+                    $project: {
+                        _id: '$_id',
+                        sumDistance: { '$round': ['$sumDistance', 2] }
+                    }
+                }
+            ]).exec((err: any, result: any) => {
+                console.log(result)
+                return resolve(result[0])
+            })
         });
-    }))
+    }
 }
-export default user;
+export default userCtrl;
