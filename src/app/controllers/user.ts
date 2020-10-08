@@ -12,6 +12,7 @@ let userCtrl = {
             });
             entity.save(async (err: any, doc: UserDocument) => {
                 if (err || !doc) {
+                    console.log(err)
                     if (err.code === 11000)
                         return resolve({ ...errorObj, message: "User Id already exist", data: doc });
                     console.error(err)
@@ -23,6 +24,7 @@ let userCtrl = {
         });
     },
     get: (id: any, data: any) => {
+        console.log(data)
         return new Promise(async (resolve) => {
             if (data.startDate && data.endDate) {
                 data.date = { $gte: moment(data.startDate).toDate(), $lt: moment(data.endDate).toDate() }
